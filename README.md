@@ -1,2 +1,1 @@
-<h1 align="center">Hi 👋, I'm Meeru</h1>  
-<h3 align="center">A passionate SQA Engineer from Bangladesh who is currently working on this README.md</h3> 
+Quality is compromised by default as soon as "when?" is a matter of concern before "why?" is explained or "how?" is planned.
