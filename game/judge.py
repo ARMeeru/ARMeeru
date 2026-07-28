@@ -256,7 +256,7 @@ def cmd_judge(args):
         verdict = _verdict(
             "invalid", "invalid", "not planned", state,
             "Could not parse this bug report. Reports are filed by clicking "
-            "the line links in the README — hand-rolled titles are not "
+            "the line links in the README. Hand-rolled titles are not "
             "triaged.")
     else:
         verdict = judge(state, corpus, answers, parsed[0], parsed[1],
