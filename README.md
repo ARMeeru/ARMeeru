@@ -1,8 +1,8 @@
-> Quality is compromised by default as soon as "when?" is a matter of concern before "why?" is explained or "how?" is planned.
+> AI collapsed "when?" to "now." Quality still hangs on "why?" and "how?"
 
 QA automation engineer. Most of my work is test automation; lately it's tooling for AI coding agents. They turn out to be the same problem — neither gives you a deterministic system to assert against.
 
-Python, Go, Rust, TypeScript. [portfolio.meeru.dev](https://portfolio.meeru.dev/)
+Go, Python, TypeScript, Rust.
 
 ---
 
