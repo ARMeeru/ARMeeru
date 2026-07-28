@@ -1,0 +1,76 @@
+name: bug-hunt sweep
+
+# Janitor for reports the live triage missed. GitHub's concurrency group
+# holds at most ONE queued run — a third near-simultaneous guess is silently
+# cancelled, and an issue filed in the seconds around a push can miss the
+# event entirely. This sweep judges any open bug-report issue so nobody's
+# guess goes unanswered forever.
+
+on:
+  schedule:
+    - cron: "23 */6 * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: bug-hunt
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  issues: write
+
+jobs:
+  sweep:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - run: pip install --quiet cryptography
+
+      - name: Judge every unanswered report
+        env:
+          GAME_KEY: ${{ secrets.GAME_KEY }}
+          SCORE_OWNER: ${{ vars.SCORE_OWNER }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh label create confirmed --color 1a7f37 --description "Real defect, points awarded" --force
+          gh label create works-as-designed --color 6e7781 --description "Cannot reproduce" --force
+          gh label create duplicate --color 6e7781 --description "Line already reported this round" --force
+          gh label create invalid --color d1242f --description "Unparseable or stale report" --force
+
+          gh issue list --state open --limit 100 \
+            --json number,title,author \
+            --jq '.[] | select(.title | startswith("bug-report:"))
+                  | [.number, .author.login, .title] | @tsv' \
+            | sort -n > /tmp/reports.tsv
+
+          count=$(wc -l < /tmp/reports.tsv)
+          echo "sweeping $count unanswered report(s)"
+
+          while IFS=$'\t' read -r num author title; do
+            export ISSUE_NUMBER="$num" ISSUE_AUTHOR="$author" ISSUE_TITLE="$title"
+            python game/judge.py judge
+            source game/verdict.env
+            gh issue comment "$num" --body-file game/comment.md
+            gh issue edit "$num" --add-label "$LABEL"
+            gh issue close "$num" --reason "$CLOSE_REASON"
+          done < /tmp/reports.tsv
+
+      - name: Commit round update
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add README.md game/state.json
+          if ! git diff --cached --quiet; then
+            git commit -m "chore(game): sweep unanswered reports"
+            git pull --rebase origin "${{ github.event.repository.default_branch }}"
+            git push
+          fi
