@@ -90,7 +90,7 @@ def judge(state, corpus, answers, rnd, line, author, issue_no, owner,
         return _verdict(
             "stale", "invalid", "not planned", state,
             f"This report targets **round {rnd}**, but **round "
-            f"{state['round']}** is live — the link you clicked came from a "
+            f"{state['round']}** is live. The link you clicked came from a "
             "cached README. Refresh the profile and report again.")
 
     if line < 1 or line > n_lines:
@@ -105,7 +105,7 @@ def judge(state, corpus, answers, rnd, line, author, issue_no, owner,
             state["scores"][author] = state["scores"].get(author, 0) + POINTS
         guesses_taken = len(state["guesses"]) + 1
         state["history"].insert(
-            0, f"Round {state['round']} — solved by **@{author}** after "
+            0, f"Round {state['round']} solved by **@{author}** after "
                f"{guesses_taken} report{'s' if guesses_taken != 1 else ''}")
         state["history"] = state["history"][:HISTORY_KEEP]
         state["round"] += 1
@@ -116,13 +116,13 @@ def judge(state, corpus, answers, rnd, line, author, issue_no, owner,
             f"**Confirmed.** {ans['confirm']}\n\n"
             f"Severity: **{ans['severity']}**. Fix queued for next sprint.\n\n")
         if is_owner:
-            comment += ("House rule: the maintainer plays for free — "
-                        "no points. ")
+            comment += ("House rule: the maintainer plays for free and "
+                        "scores nothing. ")
         else:
-            comment += (f"**+{POINTS} points** — that puts you at "
+            comment += (f"**+{POINTS} points.** That puts you at "
                         f"**{state['scores'][author]}** "
                         f"({rank_for(state['scores'][author])}). ")
-        comment += f"**Round {state['round']} is live** — refresh the profile."
+        comment += f"**Round {state['round']} is live.** Refresh the profile."
         return _verdict("confirmed", "confirmed", "completed", state, comment)
 
     key = str(line)
@@ -164,7 +164,7 @@ QUOTE = ('AI collapsed "when?" to "now." Quality still hangs on "why?" '
 
 IDENTITY = """\
 QA automation engineer. Most of my work is test automation; lately it's \
-tooling for AI coding agents. They turn out to be the same problem — neither \
+tooling for AI coding agents. They turn out to be the same problem: neither \
 gives you a deterministic system to assert against.
 
 Go, Python, TypeScript, Rust.\
@@ -196,7 +196,7 @@ def render_readme(state, corpus, repo):
         for pos, (login, pts) in enumerate(rows, 1):
             board += f"| {pos} | @{login} | {pts} | {rank_for(pts)} |\n"
     else:
-        board = "*No confirmed reports yet — the board is yours to open.*\n"
+        board = "*No confirmed reports yet. The board is yours to open.*\n"
 
     history = ""
     if state["history"]:
@@ -209,7 +209,7 @@ def render_readme(state, corpus, repo):
 
 ---
 
-## 🐛 Bug Hunt — Round {rnd}
+## 🐛 Bug Hunt: Round {rnd}
 
 **{snippet['lang']}** · one line below contains a real defect · \
 +{POINTS} points for a confirmed report
@@ -222,7 +222,7 @@ def render_readme(state, corpus, repo):
 
 {pill_row}
 
-Each link opens a pre-filled GitHub issue — the triage bot judges it, \
+Each link opens a pre-filled GitHub issue. The triage bot judges it, \
 comments, and deploys the next round. Struck-out lines were already \
 reported and closed *works-as-designed*.
 
@@ -230,9 +230,10 @@ reported and closed *works-as-designed*.
 ### 🏆 Bug hunters
 
 {board}
-<sub>Powered by GitHub Issues — every guess is a bug report, every verdict \
-is a bot comment. Answers are encrypted in the repo, so reading the source \
-won't help you. The maintainer plays for free and scores nothing.</sub>
+<sub>Powered by GitHub Issues: every guess is a bug report and every \
+verdict is a bot comment. Answers are encrypted in the repo, so reading \
+the source won't help you. The maintainer plays for free and scores \
+nothing.</sub>
 """
 
 
