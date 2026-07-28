@@ -148,6 +148,15 @@ def _verdict(kind, label, close_reason, state, comment):
             "state": state, "comment": comment}
 
 
+def write_verdict_env(verdict, path):
+    """Write the file the workflow `source`s. Values are single-quoted:
+    "not planned" contains a space, and an unquoted space in a sourced file
+    executes the second word — the same bug class as the sh-cleanup snippet."""
+    Path(path).write_text(
+        f"LABEL='{verdict['label']}'\nCLOSE_REASON='{verdict['close_reason']}'\n",
+        encoding="utf-8")
+
+
 # ---------------------------------------------------------------- rendering
 
 QUOTE = ('Quality is compromised by default as soon as "when?" is a matter '
@@ -253,9 +262,7 @@ def cmd_judge(args):
                         author, issue_no, owner, score_owner)
 
     (GAME_DIR / "comment.md").write_text(verdict["comment"], encoding="utf-8")
-    (GAME_DIR / "verdict.env").write_text(
-        f"LABEL={verdict['label']}\nCLOSE_REASON={verdict['close_reason']}\n",
-        encoding="utf-8")
+    write_verdict_env(verdict, GAME_DIR / "verdict.env")
     with open(GAME_DIR / "state.json", "w", encoding="utf-8") as f:
         json.dump(verdict["state"], f, indent=2)
         f.write("\n")

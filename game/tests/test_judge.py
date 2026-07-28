@@ -224,6 +224,21 @@ def test_render_numbered_lines_match_corpus():
     assert "11 | " in md
 
 
+# ---------------------------------------------------------------- verdict.env
+
+def test_verdict_env_is_shell_sourceable(tmp_path):
+    """CLOSE_REASON contains a space ("not planned") — the file must survive
+    a bash `source`, not just look like env syntax."""
+    v = run(fresh_state(), 1, 3)  # wad -> close_reason "not planned"
+    env_file = tmp_path / "verdict.env"
+    J.write_verdict_env(v, env_file)
+    out = subprocess.run(
+        ["bash", "-euc", f'source "{env_file}" && printf "%s|%s" "$LABEL" "$CLOSE_REASON"'],
+        capture_output=True, text=True)
+    assert out.returncode == 0, out.stderr
+    assert out.stdout == "works-as-designed|not planned"
+
+
 # ---------------------------------------------------------------- crypto
 
 def test_answers_encrypt_decrypt_roundtrip(tmp_path):
