@@ -1,0 +1,71 @@
+name: bug-hunt triage
+
+on:
+  issues:
+    types: [opened]
+
+# Serialize judges: two simultaneous guesses must not race on state.json.
+concurrency:
+  group: bug-hunt
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  issues: write
+
+jobs:
+  triage:
+    if: startsWith(github.event.issue.title, 'bug-report:')
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      # Explicit ref: the default checkout pins the SHA captured at trigger
+      # time, which is stale for a queued run that waited on the one before it.
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - run: pip install --quiet cryptography==49.0.0
+
+      - name: Judge the report
+        env:
+          GAME_KEY: ${{ secrets.GAME_KEY }}
+          SCORE_OWNER: ${{ vars.SCORE_OWNER }}
+          # Issue fields pass through env, never shell interpolation —
+          # a title is attacker-controlled input.
+          ISSUE_TITLE: ${{ github.event.issue.title }}
+          ISSUE_AUTHOR: ${{ github.event.issue.user.login }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: python game/judge.py judge
+
+      - name: Comment, label, close
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          source game/verdict.env
+          gh label create confirmed --color 1a7f37 --description "Real defect, points awarded" --force
+          gh label create works-as-designed --color 6e7781 --description "Cannot reproduce" --force
+          gh label create duplicate --color 6e7781 --description "Line already reported this round" --force
+          gh label create invalid --color d1242f --description "Unparseable or stale report" --force
+          gh issue comment "$ISSUE_NUMBER" --body-file game/comment.md
+          gh issue edit "$ISSUE_NUMBER" --add-label "$LABEL"
+          gh issue close "$ISSUE_NUMBER" --reason "$CLOSE_REASON"
+
+      - name: Commit round update
+        env:
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add README.md game/state.json
+          if ! git diff --cached --quiet; then
+            git commit -m "chore(game): triage report #${ISSUE_NUMBER}"
+            git pull --rebase origin "${{ github.event.repository.default_branch }}"
+            git push
+          fi

@@ -1,0 +1,160 @@
+[
+  {
+    "id": "py-dedupe",
+    "lang": "Python",
+    "file": "dedupe.py",
+    "lines": [
+      "def dedupe_keep_newest(events):",
+      "    \"\"\"Keep only the newest event per id.\"\"\"",
+      "    if not events:",
+      "        return []",
+      "    seen = {}",
+      "    for e in events:",
+      "        prev = seen.get(e[\"id\"])",
+      "        if prev is None or e[\"ts\"] > prev[\"ts\"]:",
+      "            seen[e[\"id\"]] = e",
+      "    ordered = sorted(seen.values(), key=lambda x: x[\"ts\"])",
+      "    return ordered[: len(seen) - 1]"
+    ]
+  },
+  {
+    "id": "go-fetchall",
+    "lang": "Go",
+    "file": "fetch_all.go",
+    "lines": [
+      "func fetchAll(urls []string) []result {",
+      "\tch := make(chan result)",
+      "\tfor _, u := range urls {",
+      "\t\tgo func() {",
+      "\t\t\tch <- fetch(u)",
+      "\t\t}()",
+      "\t}",
+      "\tout := make([]result, 0, len(urls))",
+      "\tfor range urls {",
+      "\t\tout = append(out, <-ch)",
+      "\t}",
+      "\treturn out",
+      "}"
+    ]
+  },
+  {
+    "id": "ts-saveall",
+    "lang": "TypeScript",
+    "file": "save_all.ts",
+    "lines": [
+      "async function saveAll(records: Rec[]) {",
+      "  const failures: string[] = [];",
+      "  records.forEach(async (r) => {",
+      "    try {",
+      "      await db.put(r);",
+      "    } catch {",
+      "      failures.push(r.id);",
+      "    }",
+      "  });",
+      "  return failures;",
+      "}"
+    ]
+  },
+  {
+    "id": "py-batch",
+    "lang": "Python",
+    "file": "batch.py",
+    "lines": [
+      "def batched(items, size, batch=[]):",
+      "    \"\"\"Split items into lists of at most `size`.\"\"\"",
+      "    out = []",
+      "    for it in items:",
+      "        batch.append(it)",
+      "        if len(batch) == size:",
+      "            out.append(batch)",
+      "            batch = []",
+      "    if batch:",
+      "        out.append(batch)",
+      "    return out"
+    ]
+  },
+  {
+    "id": "sh-cleanup",
+    "lang": "Bash",
+    "file": "cleanup.sh",
+    "lines": [
+      "#!/usr/bin/env bash",
+      "cleanup_logs() {",
+      "  local dir=$1",
+      "  for f in \"$dir\"/*.log; do",
+      "    [ -f $f ] || continue",
+      "    rm -- \"$f\"",
+      "  done",
+      "}"
+    ]
+  },
+  {
+    "id": "c-setname",
+    "lang": "C",
+    "file": "set_name.c",
+    "lines": [
+      "void set_name(user_t *u, const char *name) {",
+      "    strncpy(u->name, name, sizeof u->name);",
+      "    u->name[sizeof u->name] = '\\0';",
+      "}"
+    ]
+  },
+  {
+    "id": "py-dropstale",
+    "lang": "Python",
+    "file": "sessions.py",
+    "lines": [
+      "def drop_stale(sessions, cutoff):",
+      "    for sid, last in sessions.items():",
+      "        if last < cutoff:",
+      "            del sessions[sid]",
+      "    return sessions"
+    ]
+  },
+  {
+    "id": "go-defer",
+    "lang": "Go",
+    "file": "sum_files.go",
+    "lines": [
+      "func sumFiles(paths []string) (int64, error) {",
+      "\tvar total int64",
+      "\tfor _, p := range paths {",
+      "\t\tf, err := os.Open(p)",
+      "\t\tif err != nil {",
+      "\t\t\treturn 0, err",
+      "\t\t}",
+      "\t\tdefer f.Close()",
+      "\t\tn, err := count(f)",
+      "\t\tif err != nil {",
+      "\t\t\treturn 0, err",
+      "\t\t}",
+      "\t\ttotal += n",
+      "\t}",
+      "\treturn total, nil",
+      "}"
+    ]
+  },
+  {
+    "id": "ts-median",
+    "lang": "TypeScript",
+    "file": "median.ts",
+    "lines": [
+      "function median(xs: number[]) {",
+      "  const s = [...xs].sort();",
+      "  const mid = Math.floor(s.length / 2);",
+      "  return s.length % 2 ? s[mid] : (s[mid - 1] + s[mid]) / 2;",
+      "}"
+    ]
+  },
+  {
+    "id": "rs-percentile",
+    "lang": "Rust",
+    "file": "percentile.rs",
+    "lines": [
+      "fn percentile(sorted: &[f64], p: f64) -> f64 {",
+      "    let idx = (p / 100.0 * sorted.len() as f64) as usize;",
+      "    sorted[idx]",
+      "}"
+    ]
+  }
+]
