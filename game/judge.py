@@ -97,7 +97,7 @@ def judge(state, corpus, answers, rnd, line, author, issue_no, owner,
         return _verdict(
             "invalid", "invalid", "not planned", state,
             f"Line {line} does not exist in this round's snippet "
-            f"(1–{n_lines}). Closing.")
+            f"(1 to {n_lines}). Closing.")
 
     if line == ans["bug"]:
         is_owner = author == owner and not score_owner
