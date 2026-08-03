@@ -2,8 +2,6 @@
 
 QA automation engineer. Most of my work is test automation; lately it's tooling for AI coding agents. They turn out to be the same problem: neither gives you a deterministic system to assert against.
 
-Go, Python, TypeScript, Rust.
-
 ---
 
 ## 🐛 Bug Hunt: Round 1
